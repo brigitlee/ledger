@@ -395,8 +395,10 @@ function renderSheet() {
 function openSheet(opts) {
   sheet = Object.assign({ amount: '', detail: '', payer: '', pay: '現金', place: '', date: todayISO(), editId: null }, opts);
   renderSheet();
-  $('#overlay').classList.remove('hidden');
-  requestAnimationFrame(() => requestAnimationFrame(() => $('#overlay').classList.add('open')));
+  const ov = $('#overlay');
+  ov.classList.remove('hidden');
+  void ov.offsetHeight; // 強制重繪，確保滑出動畫在手機上一定觸發
+  ov.classList.add('open');
 }
 function closeSheet() {
   $('#overlay').classList.remove('open');
@@ -524,6 +526,9 @@ document.addEventListener('click', e => {
     return;
   }
 
+  const tile = e.target.closest('.tile[data-cat]');
+  if (tile) { newExpenseSheet(tile.dataset.cat); return; }
+
   const el = e.target.closest('[data-act]');
   if (!el) return;
   const act = el.dataset.act;
@@ -634,22 +639,17 @@ document.addEventListener('click', e => {
   }
 });
 
-/* 色塊按下時彈出分類名（純回饋，放開即進入面板） */
+/* 色塊按下時彈出分類名（純視覺回饋）；實際開面板交給 click（手機最可靠） */
 let pressedTile = null;
+function clearPressed() {
+  if (pressedTile) { const t = pressedTile; pressedTile = null; setTimeout(() => t.classList.remove('pressed'), 120); }
+}
 document.addEventListener('pointerdown', e => {
   const t = e.target.closest('.tile[data-cat]');
   if (t) { pressedTile = t; t.classList.add('pressed'); }
 });
-document.addEventListener('pointerup', e => {
-  if (!pressedTile) return;
-  const t = pressedTile;
-  pressedTile = null;
-  setTimeout(() => t.classList.remove('pressed'), 120);
-  if (e.target.closest('.tile[data-cat]') === t) newExpenseSheet(t.dataset.cat);
-});
-document.addEventListener('pointercancel', () => {
-  if (pressedTile) { pressedTile.classList.remove('pressed'); pressedTile = null; }
-});
+document.addEventListener('pointerup', clearPressed);
+document.addEventListener('pointercancel', clearPressed);
 
 /* ---------- 啟動 ---------- */
 
