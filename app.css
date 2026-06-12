@@ -304,8 +304,8 @@ input { font: inherit; letter-spacing: inherit; color: inherit; }
   padding: 18px;
   width: 100%;
   max-width: 360px;
-  max-height: 72dvh;
-  overflow-y: auto;
+  max-height: 88dvh;
+  overflow: visible;
 }
 .modal h3 { font-size: 16px; font-weight: normal; margin-bottom: 14px; }
 .pick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }

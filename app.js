@@ -507,8 +507,8 @@ function pickDay(cb) {
 
 /* ---------- 事件 ---------- */
 
-document.addEventListener('click', e => {
-  const pickEl = e.target.closest('[data-pick]');
+function handleActivate(tgt) {
+  const pickEl = tgt.closest('[data-pick]');
   if (pickEl && modalCb) {
     const v = pickEl.dataset.pick;
     const cb = modalCb;
@@ -516,7 +516,7 @@ document.addEventListener('click', e => {
     cb(v);
     return;
   }
-  const key = e.target.closest('[data-key]');
+  const key = tgt.closest('[data-key]');
   if (key && sheet) {
     const k = key.dataset.key;
     if (k === 'del') sheet.amount = sheet.amount.slice(0, -1);
@@ -526,10 +526,10 @@ document.addEventListener('click', e => {
     return;
   }
 
-  const tile = e.target.closest('.tile[data-cat]');
+  const tile = tgt.closest('.tile[data-cat]');
   if (tile) { newExpenseSheet(tile.dataset.cat); return; }
 
-  const el = e.target.closest('[data-act]');
+  const el = tgt.closest('[data-act]');
   if (!el) return;
   const act = el.dataset.act;
 
@@ -637,19 +637,36 @@ document.addEventListener('click', e => {
       save(); closeSheet(); render(); toast('刪掉了');
     });
   }
-});
+}
 
-/* 色塊按下時彈出分類名（純視覺回饋）；實際開面板交給 click（手機最可靠） */
-let pressedTile = null;
+/* 觸控優先：手機用 pointerup 直接觸發（避開可捲動容器吃掉點擊的問題），
+   滑鼠仍走 click；用 suppressClick 防止同一次操作重複觸發。 */
+let pressedTile = null, pDownXY = null, suppressClick = false, suppressTimer = null;
 function clearPressed() {
   if (pressedTile) { const t = pressedTile; pressedTile = null; setTimeout(() => t.classList.remove('pressed'), 120); }
 }
 document.addEventListener('pointerdown', e => {
+  pDownXY = [e.clientX, e.clientY];
   const t = e.target.closest('.tile[data-cat]');
   if (t) { pressedTile = t; t.classList.add('pressed'); }
 });
-document.addEventListener('pointerup', clearPressed);
-document.addEventListener('pointercancel', clearPressed);
+document.addEventListener('pointerup', e => {
+  clearPressed();
+  if (e.pointerType === 'mouse' || !pDownXY) { pDownXY = null; return; }
+  const moved = Math.hypot((e.clientX || 0) - pDownXY[0], (e.clientY || 0) - pDownXY[1]);
+  pDownXY = null;
+  if (moved <= 12) {
+    suppressClick = true;
+    clearTimeout(suppressTimer);
+    suppressTimer = setTimeout(() => { suppressClick = false; }, 700);
+    handleActivate(e.target);
+  }
+});
+document.addEventListener('pointercancel', () => { clearPressed(); pDownXY = null; });
+document.addEventListener('click', e => {
+  if (suppressClick) { suppressClick = false; return; }
+  handleActivate(e.target);
+});
 
 /* ---------- 啟動 ---------- */
 
