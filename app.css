@@ -213,6 +213,9 @@ input { font: inherit; letter-spacing: inherit; color: inherit; }
 
 .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .day-cell { height: 38px; border-radius: 10px; background: var(--bg); font-size: 15px; display: flex; align-items: center; justify-content: center; }
+
+/* 點擊類按鈕：禁止把觸控當成滑動手勢，確保手機上點擊一定觸發 */
+.pick, .day-cell, .key, .tile, .opt, .chip, .s-tab, .btn-now { touch-action: none; }
 .day-cell:active { background: var(--teal); color: #fff; }
 
 .scrim {
