@@ -1,6 +1,6 @@
 'use strict';
-const CACHE = 'anyu-ledger-v9';
-const SHELL = ['./', './index.html', './app.css?v=9', './app.js?v=9', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'anyu-ledger-v10';
+const SHELL = ['./', './index.html', './app.css?v=10', './app.js?v=10', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
