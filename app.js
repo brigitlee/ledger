@@ -26,10 +26,10 @@ const CATS = {
 const GRID = ['飲食', '日用', '交通', '毛孩', '嗜好', '捐獻', '學習'];
 const PAYS = ['現金', '刷卡一次付清', '帳戶匯款'];
 const PAY_ICON = { '現金': 'payments', '刷卡一次付清': 'credit_card', '帳戶匯款': 'account_balance' };
-const PLACES = ['菜市場', '超市', '蝦皮', '全家', '7-11', '網購'];
+const PLACES = ['菜市場', '超市', '蝦皮', '網購', '自行輸入'];
 
 const STORE_KEY = 'anyu-ledger-v1';
-const VERSION = '13';
+const VERSION = '15';
 
 /* 偵錯記錄（預設關閉）：除錯時改成 true，會把觸控事件顯示在畫面上 */
 const DEBUG = false;
@@ -341,6 +341,14 @@ function render() {
   $('#app').innerHTML = ui.view === 'home' ? renderHome()
     : ui.view === 'recurring' ? renderRecurring()
     : renderBudget();
+  // 直接綁 touchend，讓 Android pointercancel 場景仍能觸發
+  const moreCatsBtn = document.querySelector('[data-act="more-cats"]');
+  if (moreCatsBtn) {
+    moreCatsBtn.addEventListener('touchend', e => {
+      e.preventDefault(); // 阻止後續 click
+      handleActivate(e.target);
+    }, { once: true, passive: false });
+  }
 }
 
 /* ---------- 記帳面板 ---------- */
@@ -375,15 +383,6 @@ const KEYS = `<div class="keys">
 function renderSheet() {
   if (!sheet) return;
   $('#s-tabs').innerHTML = sheetTabs(sheet.cat, sheet.kind);
-  // 直接綁三點按鈕，補強事件委派在 iOS scrollable 容器內的可靠性
-  const moreBtn = $('#s-tabs').querySelector('[data-act="sheet-more"]');
-  if (moreBtn) {
-    moreBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      grabInputs();
-      pickCategory('換成哪一類？', c => { if (CATS[c] && sheet) { sheet.cat = c; renderSheet(); } });
-    }, { once: true });
-  }
   let chips = '', extra = '', save = '記下來', del = '';
 
   if (sheet.kind === 'expense') {
@@ -769,7 +768,11 @@ function openSettings() {
 
 /* ---------- 事件 ---------- */
 
+let _lastActivateTime = 0;
 function handleActivate(tgt) {
+  const now = Date.now();
+  if (now - _lastActivateTime < 80) return; // 防止 pointerup + touchend 雙觸發
+  _lastActivateTime = now;
   const pickEl = tgt.closest('[data-pick]');
   if (pickEl && modalCb) {
     const v = pickEl.dataset.pick;
@@ -867,10 +870,7 @@ function handleActivate(tgt) {
   if (act === 'close-modal') closeModal(el.classList.contains('modal-scrim'));
 
   if (act === 'sheet-cat') { grabInputs(); sheet.cat = el.dataset.cat; renderSheet(); }
-  if (act === 'sheet-more') {
-    grabInputs();
-    pickCategory('換成哪一類？', c => { if (CATS[c] && sheet) { sheet.cat = c; renderSheet(); } });
-  }
+  if (act === 'sheet-more') { grabInputs(); pickCategory('換成哪一類？', c => { if (CATS[c] && sheet) { sheet.cat = c; renderSheet(); } }); }
 
   if (act === 'chip-pay') {
     grabInputs();
@@ -879,15 +879,17 @@ function handleActivate(tgt) {
   }
   if (act === 'chip-place') {
     grabInputs();
-    pickPlace(v => {
-      if (!sheet) return;
-      if (v === '__none') sheet.place = '';
-      else if (v === '__custom') {
-        const t = prompt('地點：');
-        if (t != null) sheet.place = t.trim();
-      } else sheet.place = v;
-      renderSheet();
-    });
+    if (!sheet) return;
+    const cycle = ['', ...PLACES];
+    const idx = cycle.indexOf(sheet.place);
+    const next = cycle[(idx + 1) % cycle.length];
+    if (next === '自行輸入') {
+      const t = prompt('地點：');
+      sheet.place = (t != null && t.trim()) ? t.trim() : sheet.place;
+    } else {
+      sheet.place = next;
+    }
+    renderSheet();
   }
   if (act === 'chip-date') {
     grabInputs();

@@ -222,9 +222,11 @@ input { font: inherit; letter-spacing: inherit; color: inherit; }
   position: fixed; inset: 0;
   background: rgba(51, 41, 31, .45);
   opacity: 0;
+  pointer-events: none;
   transition: opacity .2s;
   z-index: 40;
 }
+.open .scrim { pointer-events: auto; }
 .sheet {
   position: fixed; left: 0; right: 0; bottom: 0;
   max-width: 430px; margin: 0 auto;
