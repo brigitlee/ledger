@@ -119,7 +119,7 @@ input { font: inherit; letter-spacing: inherit; color: inherit; }
   justify-content: center;
   transition: transform .08s;
 }
-.tile i { font-size: 32px; }
+.tile i { font-size: 52px; }
 .tile.ghost { border: 1.5px solid var(--ink); }
 .tile.pressed { transform: scale(.93); }
 .tile .pop {
