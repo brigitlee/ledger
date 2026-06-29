@@ -112,14 +112,14 @@ input { font: inherit; letter-spacing: inherit; color: inherit; }
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
 .tile {
   position: relative;
-  height: 64px;
+  aspect-ratio: 1;
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform .08s;
 }
-.tile i { font-size: 26px; }
+.tile i { font-size: 32px; }
 .tile.ghost { border: 1.5px solid var(--ink); }
 .tile.pressed { transform: scale(.93); }
 .tile .pop {
@@ -235,8 +235,7 @@ input { font: inherit; letter-spacing: inherit; color: inherit; }
 .open .scrim { opacity: 1; }
 .open .sheet { transform: translateY(0); }
 
-.sheet .s-tabs { display: flex; gap: 4px; align-items: flex-end; padding: 0 14px; overflow-x: auto; scrollbar-width: none; }
-.sheet .s-tabs::-webkit-scrollbar { display: none; }
+.sheet .s-tabs { display: flex; gap: 4px; align-items: flex-end; padding: 0 14px; overflow: visible; }
 .s-tab {
   border-radius: 10px 10px 0 0;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
@@ -263,7 +262,8 @@ input { font: inherit; letter-spacing: inherit; color: inherit; }
 .chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
 .chip {
   font-size: 13px;
-  padding: 7px 12px;
+  padding: 10px 14px;
+  min-height: 40px;
   border-radius: 99px;
   background: var(--bg);
   display: inline-flex; align-items: center; gap: 5px;

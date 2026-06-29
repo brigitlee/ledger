@@ -26,10 +26,10 @@ const CATS = {
 const GRID = ['飲食', '日用', '交通', '毛孩', '嗜好', '捐獻', '學習'];
 const PAYS = ['現金', '刷卡一次付清', '帳戶匯款'];
 const PAY_ICON = { '現金': 'payments', '刷卡一次付清': 'credit_card', '帳戶匯款': 'account_balance' };
-const PLACES = ['菜市場', '全聯', '超市', '蝦皮', '全家', '7-11', '網購'];
+const PLACES = ['菜市場', '超市', '蝦皮', '全家', '7-11', '網購'];
 
 const STORE_KEY = 'anyu-ledger-v1';
-const VERSION = '11';
+const VERSION = '12';
 
 /* 偵錯記錄（預設關閉）：除錯時改成 true，會把觸控事件顯示在畫面上 */
 const DEBUG = false;
@@ -375,6 +375,15 @@ const KEYS = `<div class="keys">
 function renderSheet() {
   if (!sheet) return;
   $('#s-tabs').innerHTML = sheetTabs(sheet.cat, sheet.kind);
+  // 直接綁三點按鈕，補強事件委派在 iOS scrollable 容器內的可靠性
+  const moreBtn = $('#s-tabs').querySelector('[data-act="sheet-more"]');
+  if (moreBtn) {
+    moreBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      grabInputs();
+      pickCategory('換成哪一類？', c => { if (CATS[c] && sheet) { sheet.cat = c; renderSheet(); } });
+    }, { once: true });
+  }
   let chips = '', extra = '', save = '記下來', del = '';
 
   if (sheet.kind === 'expense') {
